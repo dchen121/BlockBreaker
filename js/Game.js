@@ -17,7 +17,7 @@ let bootState = {
 let loadState = {
     preload: function() {
         game.load.image('ball', 'assets/ball.png');
-        game.load.image('brick', 'assets/brick.png');
+        game.load.image('block', 'assets/block.png');
         game.load.image('paddle', 'assets/paddle.png');
         game.load.image('background', 'assets/background.png');
     },
@@ -33,10 +33,10 @@ let SCORE = 0;
 
 let BLOCK_ROW = 10;
 let BLOCK_HEIGHT = 5;
-let BLOCK_SPACING_X = 75;
-let BLOCK_SPACING_Y = 40;
+let BLOCK_SPACING_X = 100;
+let BLOCK_SPACING_Y = 50;
 
-let bricks;
+let blocks;
 let paddle;
 let ball;
 
@@ -51,12 +51,12 @@ let gameState = {
         initGame();
         setupBackground();
         setupText();
-        setupBricks();
+        setupBlocks();
         setupPaddle();
         setupBall();
     },
     update: function() {
-        checkBricks();
+        checkBlocks();
         updatePaddle();
         updateBall();
         checkCollision();
@@ -84,34 +84,29 @@ function setupText() {
 }
 
 function createText(x, y, align, text) {
-    return game.add.text(x, y, text,
-        {
-            font: '18px Arial',
-            fill: '#000',
-            boundsAlignH: align
-        }
+    return game.add.text(x, y, text,{ font: '24px Arial', fill: '#000', boundsAlignH: align }
     ).setTextBounds(0, 0, game.world.width, 0);
 }
 
-function setupBricks() {
-    bricks = game.add.group();
-    let brick;
+function setupBlocks() {
+    blocks = game.add.group();
+    let block;
 
     for (let x = 0; x < BLOCK_ROW; x++) {
         for (let y = 0; y < BLOCK_HEIGHT; y++) {
-            brick = game.add.sprite(x * BLOCK_SPACING_X, y * BLOCK_SPACING_Y, 'brick');
-            brick.scale.setTo(1.5, 1.5);
-            game.physics.arcade.enable(brick);
-            brick.body.immovable = true;
-            bricks.add(brick);
+            block = game.add.sprite(x * BLOCK_SPACING_X, y * BLOCK_SPACING_Y, 'block');
+            block.scale.setTo(2, 1.5);
+            game.physics.arcade.enable(block);
+            block.body.immovable = true;
+            blocks.add(block);
         }
     }
 
-    let bricksWidth = ((BLOCK_SPACING_X * BLOCK_ROW) - (BLOCK_SPACING_X - brick.width));
+    let blocksWidth = ((BLOCK_SPACING_X * BLOCK_ROW) - (BLOCK_SPACING_X - block.width));
 
-    bricks.position.setTo(
-        game.world.centerX - bricksWidth/2,
-        game.world.centerY - 250
+    blocks.position.setTo(
+        game.world.centerX - blocksWidth/2,
+        game.world.height*0.2
     );
 }
 
@@ -120,7 +115,7 @@ function setupPaddle() {
     game.physics.arcade.enable(paddle);
     paddle.body.immovable = true;
     paddle.anchor.setTo(0.5, 0.5);
-    paddle.scale.setTo(1.25, 1.25);
+    paddle.scale.setTo(1.5, 1.25);
 }
 
 function setupBall() {
@@ -140,7 +135,7 @@ function releaseBall() {
     if (isBallOnPaddle) {
         isBallOnPaddle = false;
 
-        ball.body.velocity.x = 0;
+        ball.body.velocity.x = game.rnd.integerInRange(-100, 100);
         ball.body.velocity.y = -600;
     }
 }
@@ -158,8 +153,8 @@ function resetBallOnPaddle() {
     isBallOnPaddle = true;
 }
 
-function checkBricks() {
-    if (bricks.countLiving() <= 0) {
+function checkBlocks() {
+    if (blocks.countLiving() <= 0) {
         nextLevel();
     }
 }
@@ -167,7 +162,7 @@ function checkBricks() {
 function nextLevel() {
     resetBallOnPaddle();
     updateLevel(++game.globals.level);
-    setupBricks();
+    setupBlocks();
 }
 
 function updatePaddle() {
@@ -190,11 +185,11 @@ function updateBall() {
 }
 
 function checkCollision() {
-    game.physics.arcade.collide(ball, paddle, ballHitPaddle, null, game);
-    game.physics.arcade.collide(ball, bricks, ballHitBrick, null, game);
+    game.physics.arcade.collide(ball, paddle, ballPaddleCollision, null, game);
+    game.physics.arcade.collide(ball, blocks, ballBlockCollision, null, game);
 }
 
-function ballHitPaddle(ball, paddle) {
+function ballPaddleCollision(ball, paddle) {
     let diff = 0
 
     if (ball.x < paddle.x) {
@@ -208,8 +203,8 @@ function ballHitPaddle(ball, paddle) {
     }
 }
 
-function ballHitBrick(ball, brick) {
-    brick.kill();
+function ballBlockCollision(ball, block) {
+    block.kill();
     updateScore(game.globals.score+=10);
 }
 
@@ -244,10 +239,10 @@ function setupGameoverText() {
         game.width * 0.5,
         game.height * 0.5,
         `Game over\n\nYou reached level ${game.globals.level} with score ${game.globals.score}\n\nClick anywhere to play again`,
-        { font: '24px Arial', fill: '#FFF', align: 'center' }
+        { font: '24px Arial', fill: '#000', align: 'center' }
     );
 
-    text.anchor.set(0.5);
+    text.anchor.set(0.5, 0.5);
 }
 
 function restartGame() {
