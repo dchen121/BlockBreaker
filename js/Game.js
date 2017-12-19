@@ -141,7 +141,7 @@ function releaseBall() {
         isBallOnPaddle = false;
 
         ball.body.velocity.x = 0;
-        ball.body.velocity.y = -1000;
+        ball.body.velocity.y = -600;
     }
 }
 
